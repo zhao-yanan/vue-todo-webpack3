@@ -2,7 +2,7 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const webpack = require('webpack');
 const webpackMerge = require('webpack-merge');
-const ExtractTextWebpackPlugin = require('extract-text-webpack-plugin');
+const MiniCssExtractPlugin = require('MiniCssExtractPlugin');
 const baseConfig = require('./webpack.config.base.js');
 
 const isDev = process.env.NODE_ENV === 'development';
@@ -68,19 +68,22 @@ if (isDev) {
             rules: [
                 {
                     test: /\.less$/,
-                    use: ExtractTextWebpackPlugin.extract({
-                        fallback: 'style-loader',
-                        use: [
-                            'css-loader',
-                            {
-                                loader: 'postcss-loader',
-                                options: {
-                                    sourceMap: true
-                                }
-                            },
-                            'less-loader'
-                        ]
-                    })
+                    use: [
+                        {
+                            loader: MiniCssExtractPlugin.loader,
+                            options: {
+
+                            }
+                        },
+                        'css-loader',
+                        {
+                            loader: 'postcss-loader',
+                            options: {
+                                sourceMap: true
+                            }
+                        },
+                        'less-loader'
+                    ]
                 }
             ]
         },
