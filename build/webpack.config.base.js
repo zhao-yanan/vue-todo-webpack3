@@ -1,6 +1,8 @@
 const path = require('path');
+const VueLoaderPlugin = require('vue-loader/lib/plugin');
 
 const config = {
+    mode: process.env.NODE_ENV || 'production',
     target: 'web',
     entry: path.join(__dirname, '../client/index.js'),
     output: {
@@ -42,7 +44,10 @@ const config = {
                 ]
             }
         ]
-    }
+    },
+    plugins: [
+        new VueLoaderPlugin()
+    ]
 };
 
 module.exports = config;

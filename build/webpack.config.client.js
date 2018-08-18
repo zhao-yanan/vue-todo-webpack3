@@ -2,18 +2,20 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const webpack = require('webpack');
 const webpackMerge = require('webpack-merge');
-const MiniCssExtractPlugin = require('MiniCssExtractPlugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const baseConfig = require('./webpack.config.base.js');
 
 const isDev = process.env.NODE_ENV === 'development';
 
 const devServer = {
     port: 8000,
-        host: '0.0.0.0',   //可以通过localhost、127.0.0.1和内网IP访问
-        overlay: {
+    host: '0.0.0.0',   //可以通过localhost、127.0.0.1和内网IP访问
+    overlay: {
         errors: true   //将错误显示在页面上
     },
-    // open: true,        //启动webpack-dev-server时自动打开浏览器
+    historyApiFallback: {
+        index: '/index.html'
+    },
     hot: true
 };
 
@@ -23,7 +25,9 @@ const defaultPlugin = [
             NODE_ENV: isDev ? '"development"' : '"production"'
         }
     }),
-    new HtmlWebpackPlugin()
+    new HtmlWebpackPlugin({
+        template: path.join(__dirname, 'template.html')
+    })
 ];
 
 let config;
@@ -51,15 +55,13 @@ if (isDev) {
             ]
         },
         plugins: defaultPlugin.concat([
-            new webpack.HotModuleReplacementPlugin(),
-            new webpack.NoEmitOnErrorsPlugin()
+            new webpack.HotModuleReplacementPlugin()
         ])
     });
 } else {
     config = webpackMerge(baseConfig, {
         entry: {
-            app: path.join(__dirname, '../client/index.js'),
-            vendor: ['vue']
+            app: path.join(__dirname, '../client/index.js')
         },
         output: {
             filename: '[name].[chunkhash:8].js'
@@ -69,12 +71,7 @@ if (isDev) {
                 {
                     test: /\.less$/,
                     use: [
-                        {
-                            loader: MiniCssExtractPlugin.loader,
-                            options: {
-
-                            }
-                        },
+                        MiniCssExtractPlugin.loader,
                         'css-loader',
                         {
                             loader: 'postcss-loader',
@@ -87,15 +84,18 @@ if (isDev) {
                 }
             ]
         },
-        plugins: [
-            new ExtractTextWebpackPlugin('styles.[contentHash:8].css'),
-            new webpack.optimize.CommonsChunkPlugin({   //公共模块单独打包，与入口中名称对应
-                name: 'vendor'
-            }),
-            new webpack.optimize.CommonsChunkPlugin({
-                name: 'runtime'
+        optimization: {
+            splitChunks: {
+                chunks: 'all'
+            },
+            runtimeChunk: true
+        },
+        plugins: defaultPlugin.concat([
+            new MiniCssExtractPlugin({
+                filename: 'css/app.[name].css',
+                chunkFilename: 'css/app.[contentHash:8].css'
             })
-        ]
+        ])
     });
 }
 
